@@ -1,0 +1,58 @@
+[
+  {
+    "agent_id": "agt-fixture1-01",
+    "run_id": "run-fixture1",
+    "name": "Planner 1",
+    "role": "planner",
+    "permissions": [
+      "docs/wiki",
+      "data/public"
+    ],
+    "is_malicious": false
+  },
+  {
+    "agent_id": "agt-fixture1-02",
+    "run_id": "run-fixture1",
+    "name": "Analyst 1",
+    "role": "analyst",
+    "permissions": [
+      "data/public",
+      "data/customer_pii",
+      "docs/wiki"
+    ],
+    "is_malicious": true
+  },
+  {
+    "agent_id": "agt-fixture1-03",
+    "run_id": "run-fixture1",
+    "name": "Coder 1",
+    "role": "coder",
+    "permissions": [
+      "repo/src",
+      "docs/wiki"
+    ],
+    "is_malicious": true
+  },
+  {
+    "agent_id": "agt-fixture1-04",
+    "run_id": "run-fixture1",
+    "name": "Researcher 1",
+    "role": "researcher",
+    "permissions": [
+      "docs/wiki",
+      "data/public"
+    ],
+    "is_malicious": false
+  },
+  {
+    "agent_id": "agt-fixture1-05",
+    "run_id": "run-fixture1",
+    "name": "Reviewer 1",
+    "role": "reviewer",
+    "permissions": [
+      "repo/src",
+      "docs/wiki"
+    ],
+    "is_malicious": false
+  }
+]

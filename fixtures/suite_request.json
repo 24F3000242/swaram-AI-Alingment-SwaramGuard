@@ -1,0 +1,8 @@
+{
+  "scenario_ids": ["normal_collaboration", "unauthorized_access", "coordinated_leakage"],
+  "agent_count": 5,
+  "drop_rates": [0.0, 0.1, 0.3, 0.5],
+  "seeds": [1, 2, 3],
+  "gateway_mode": "monitor",
+  "persist": true
+}

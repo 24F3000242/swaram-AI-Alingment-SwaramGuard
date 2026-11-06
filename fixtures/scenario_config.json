@@ -1,0 +1,10 @@
+{
+  "scenario_id": "coordinated_leakage",
+  "agent_count": 5,
+  "seed": 7,
+  "gateway_mode": "enforce",
+  "drop_rate": 0.0,
+  "agent_backend": "deterministic",
+  "auto_pipeline": false,
+  "persist": false
+}

@@ -1,0 +1,32 @@
+{
+  "run_id": "run-fixture1",
+  "scenario_id": "coordinated_leakage",
+  "agent_count": 5,
+  "seed": 7,
+  "gateway_mode": "enforce",
+  "drop_rate": 0.0,
+  "agent_backend": "deterministic",
+  "created_at": "2026-11-03T23:05:16.437Z",
+  "base_time": "2026-01-15T09:00:00.000Z",
+  "stages": {
+    "simulated": "2026-11-03T23:05:16.437Z"
+  },
+  "counts": {
+    "agents": 5,
+    "raw_events": 62,
+    "dropped_events": 0
+  },
+  "labels": {
+    "malicious_agent_ids": [
+      "agt-fixture1-02",
+      "agt-fixture1-03"
+    ],
+    "malicious_event_ids": [
+      "evt-fixture1-0030",
+      "evt-fixture1-0031",
+      "evt-fixture1-0032",
+      "evt-fixture1-0033"
+    ]
+  },
+  "dropped_event_ids": []
+}

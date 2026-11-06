@@ -1,0 +1,13 @@
+.env
+*.json.key
+service-account*.json
+backend/.venv/
+backend/data/
+__pycache__/
+.pytest_cache/
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+runs/
+datasets/
+/app/

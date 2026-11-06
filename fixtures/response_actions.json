@@ -1,0 +1,47 @@
+[
+  {
+    "response_id": "rsp-e245441072",
+    "run_id": "run-fixture1",
+    "alert_id": "alt-1bc5f13521",
+    "policy_id": "default",
+    "decision": "block",
+    "outcome": "blocked",
+    "mode": "enforced",
+    "enforced": true,
+    "agent_ids": [
+      "agt-fixture1-03"
+    ],
+    "event_ids": [
+      "evt-fixture1-0033"
+    ],
+    "gateway_event_ids": [
+      "evt-fixture1-0033"
+    ],
+    "note": "Gateway denied 1 request(s) before execution.",
+    "created_at": "2026-11-03T23:05:16.441Z"
+  },
+  {
+    "response_id": "rsp-345b8f799a",
+    "run_id": "run-fixture1",
+    "alert_id": "alt-cbf4efa70f",
+    "policy_id": "default",
+    "decision": "pause",
+    "outcome": "blocked",
+    "mode": "enforced",
+    "enforced": true,
+    "agent_ids": [
+      "agt-fixture1-02",
+      "agt-fixture1-03"
+    ],
+    "event_ids": [
+      "evt-fixture1-0030",
+      "evt-fixture1-0031",
+      "evt-fixture1-0033"
+    ],
+    "gateway_event_ids": [
+      "evt-fixture1-0033"
+    ],
+    "note": "Gateway denied 1 request(s) before execution. 2 related event(s) had already completed and were not prevented.",
+    "created_at": "2026-11-03T23:05:16.442Z"
+  }
+]

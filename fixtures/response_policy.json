@@ -1,0 +1,12 @@
+{
+  "policy_id": "default",
+  "name": "Default severity policy",
+  "mode": "enforce",
+  "severity_actions": {
+    "low": "alert",
+    "medium": "alert",
+    "high": "block",
+    "critical": "pause"
+  },
+  "rule_overrides": {}
+}

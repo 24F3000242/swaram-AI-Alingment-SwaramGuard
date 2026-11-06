@@ -1,0 +1,9 @@
+{
+  "run_id": "run-fixture1",
+  "total_input": 62,
+  "valid": 62,
+  "invalid": 0,
+  "duplicates": 0,
+  "warnings": [],
+  "errors": []
+}
