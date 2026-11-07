@@ -90,8 +90,19 @@ export function LivePage({ initialView = "feed" }: { initialView?: "feed" | "top
   useEffect(() => {
     setActiveView(initialView);
   }, [initialView]);
-  const { meta } = useAppState();
+  const { meta, selectRun, refreshRuns } = useAppState();
   const { messages, connected, totalReceived, clear, reset } = useLiveStream(undefined, 5000);
+  const [startedRun, setStartedRun] = useState<string | null>(null);
+
+  // Once the run started here finishes (and is saved), make it the app's selected run, so Dashboard, Incidents and
+  // Pipeline show it instead of whatever run was selected before.
+  useEffect(() => {
+    if (!startedRun) return;
+    const done = messages.some((m) => m.run_id === startedRun && (m.type === "run_finished" || m.type === "run_failed"));
+    if (!done) return;
+    setStartedRun(null);
+    refreshRuns().then(() => selectRun(startedRun));
+  }, [messages, startedRun, refreshRuns, selectRun]);
   const [scenario, setScenario] = useState("coordinated_leakage");
   const [count, setCount] = useState<AgentCount>(5);
   const [ai, setAi] = useState(false);
@@ -221,6 +232,7 @@ export function LivePage({ initialView = "feed" }: { initialView?: "feed" | "top
         live_guard: "contain",
         persist: true,
       });
+      setStartedRun(r.run_id);
       setStatus({
         kind: "success",
         message: <>Live streaming run <code className="font-mono">{r.run_id}</code> ({targetScenario}). Interception gates active.</>,
