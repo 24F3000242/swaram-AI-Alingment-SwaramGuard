@@ -665,8 +665,7 @@ Answering the "we only grade ourselves" gap, plus the remaining OWASP partials.
   - AgentDojo, five real models the classifier never trained on: SG-028 recall 0.66 on 2,810 attacked tool results,
     0.10 false positives on clean ones.
 - **Classifier, stronger.** SG-028 now also runs a policy-aware destination check (recall on our injections 0.67 ->
-  0.94) and normalises against invisible characters, look-alike letters, leetspeak and base64 before scoring. An
-  optional `SWARMGUARD_INJECTION_SCORER_URL` plugs in a heavier model, falling back safely.
+  0.94). It scores text as written (no de-obfuscation; SG-020 flags encoding artifacts in messages). An optional `SWARMGUARD_INJECTION_SCORER_URL` plugs in a heavier model, falling back safely.
 - **Scoped agent identity tokens (ASI03).** A session may issue tokens with a TTL (`token_ttl`); events, gate calls
   and proxied traffic with an expired token are refused. The expiry is inside the HMAC, so it can't be extended.
 - **Swarm circuit breaker (ASI08).** Once containment spreads to a set number of agents (default 4), the live guard

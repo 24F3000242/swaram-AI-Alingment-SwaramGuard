@@ -71,8 +71,8 @@ Beyond the trained linear model, SG-028's score is the highest of:
   which wording-based models miss. On our 18 hand-written injections it lifted recall from 0.67 to **0.94** (17/18),
   at the cost of 1 false alarm on the attacker's own planted wiki page.
 
-Before scoring, text is normalised against cheap evasions: invisible characters removed, look-alike letters mapped to
-ASCII, leetspeak undone, and base64 blobs decoded; the highest score across the variants counts.
+The classifier scores the text as written; it does not undo character-level obfuscation. Hidden characters, encoded
+blobs and mixed-alphabet letters in agent messages are flagged separately by SG-020.
 
 For deployments that want more than a linear model, set `SWARMGUARD_INJECTION_SCORER_URL` to a service running a
 stronger classifier (e.g. Meta Prompt Guard on a GPU box): SwarmGuard POSTs `{"text"}`, expects `{"score": 0..1}`, and
