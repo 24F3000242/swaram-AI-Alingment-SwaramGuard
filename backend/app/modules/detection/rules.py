@@ -353,6 +353,12 @@ from app.modules.detection.covert import COVERT_IMPLS, COVERT_RULES  # noqa: E40
 DEFAULT_RULES.extend(COVERT_RULES)
 RULE_IMPLS.update(COVERT_IMPLS)
 
+# Agent claims about its own tool calls, reconciled with what was recorded (SG-030).
+from app.modules.detection.claims import CLAIM_IMPLS, CLAIM_RULES  # noqa: E402
+
+DEFAULT_RULES.extend(CLAIM_RULES)
+RULE_IMPLS.update(CLAIM_IMPLS)
+
 
 SENSOR_READERS = {"SG-021"}  # rules that reconcile sensor records with the agent log
 

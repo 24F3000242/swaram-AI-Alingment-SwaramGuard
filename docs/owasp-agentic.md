@@ -5,7 +5,7 @@ Coverage levels are our own judgement: **strong** = detected *and* enforced, wit
 
 Served by `GET /api/coverage/owasp`; each alert exported to a SIEM carries its OWASP risk IDs.
 
-**Summary:** 7 strong, 3 partial, none uncovered. All 29 rules mapped.
+**Summary:** 7 strong, 3 partial, none uncovered. All 30 rules mapped.
 
 | Risk | Coverage | Rules | Enforcement | Gaps |
 |---|---|---|---|---|
@@ -17,7 +17,7 @@ Served by `GET /api/coverage/owasp`; each alert exported to a SIEM carries its O
 | **ASI06** Memory and Context Poisoning | strong | SG-012 Goal hijack / memory poisoning<br>SG-028 Prompt injection in content | memory provenance: recalling a note that came from untrusted content arms the tripwire; sleeper and poisoned-memory scenarios tested | Provenance must be reported by the platform; memory written outside SwarmGuard's view is unlabelled. |
 | **ASI07** Insecure Inter-Agent Communication | strong | SG-026 Impersonated sender<br>SG-027 Relayed untrusted instructions<br>SG-003 Coordinated leakage chain<br>SG-005 Indirect channel (dead drop)<br>SG-020 Steganographic collusion indicators<br>SG-029 Covert staged transfer | impersonated messages quarantined before delivery; need-to-know egress hold; per-agent identity tokens | Messages are not encrypted by SwarmGuard; it relies on the platform's transport. |
 | **ASI08** Cascading Failures | strong | SG-013 Cascading failure<br>SG-018 Loop / runaway agent<br>SG-010 Log integrity | automatic swarm circuit breaker (pause the rest once containment spreads to N agents); operator kill switch (stop run); worm containment at patient zero | The breaker pauses; it does not selectively throttle while keeping healthy agents running. |
-| **ASI09** Human-Agent Trust Exploitation | partial | SG-017 Coercion of humans<br>SG-014 Deceptive reporting | review queue: humans release or confirm every containment | Messages to humans are checked for coercion patterns, not for subtle persuasion. |
-| **ASI10** Rogue Agents | strong | SG-004 Behavioral anomaly<br>SG-025 Drift from own history<br>SG-006 Oversight & shutdown tampering<br>SG-007 Self-exfiltration & replication<br>SG-009 Honeytoken tripwire<br>SG-011 Power seeking<br>SG-014 Deceptive reporting<br>SG-015 Reward hacking / result manipulation<br>SG-022 Monitoring-dependent behavior | pre-execution policy check (any cause, incl. a goal of the agent's own); risk-based pause; internal-goal fuzzer measures how often a model goes rogue | Baselines need history (SG-025 needs 5+ runs of the agent). |
+| **ASI09** Human-Agent Trust Exploitation | partial | SG-017 Coercion of humans<br>SG-014 Deceptive reporting<br>SG-030 Claimed tool call doesn't match reality | review queue: humans release or confirm every containment; agent work reports checked claim by claim against recorded actions (SG-030) | Messages to humans are checked for coercion patterns, not for subtle persuasion. |
+| **ASI10** Rogue Agents | strong | SG-004 Behavioral anomaly<br>SG-025 Drift from own history<br>SG-006 Oversight & shutdown tampering<br>SG-007 Self-exfiltration & replication<br>SG-009 Honeytoken tripwire<br>SG-011 Power seeking<br>SG-014 Deceptive reporting<br>SG-015 Reward hacking / result manipulation<br>SG-022 Monitoring-dependent behavior<br>SG-030 Claimed tool call doesn't match reality | pre-execution policy check (any cause, incl. a goal of the agent's own); risk-based pause; internal-goal fuzzer measures how often a model goes rogue | Baselines need history (SG-025 needs 5+ runs of the agent). |
 
 The mapping lives in `backend/app/modules/detection/owasp.py`; a test checks every rule is mapped.

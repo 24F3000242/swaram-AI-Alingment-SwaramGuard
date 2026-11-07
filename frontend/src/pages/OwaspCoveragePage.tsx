@@ -45,7 +45,7 @@ export function OwaspCoveragePage({ hideHeader = false }: { hideHeader?: boolean
       {!hideHeader && (
         <PageHeader
           title="OWASP Agentic."
-          subtitle="Mapping SwarmGuard's 29 detection rules and pre-execution enforcement controls to the OWASP Top 10 for Agentic Applications (2026)."
+          subtitle="Mapping SwarmGuard's 30 detection rules and pre-execution enforcement controls to the OWASP Top 10 for Agentic Applications (2026)."
         />
       )}
 

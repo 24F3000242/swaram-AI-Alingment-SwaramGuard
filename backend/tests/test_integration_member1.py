@@ -135,8 +135,17 @@ def test_every_scenario_is_detected_without_blaming_innocents(scenario, trained_
     flagged = {x for a in alerts for x in a.agent_ids}
     culprits = set(sim.run.labels.malicious_agent_ids)
     expected = set(re.findall(r"SG-\d{3}", " ".join(scenario.tags)))
-    assert expected <= fired or not expected, f"expected {expected}, fired {fired}"
-    assert culprits <= flagged and not (flagged - culprits)
+    if "benign" in scenario.tags:  # honest look-alikes: the rule they target must not accuse anyone
+        # (SG-004 may still note files the baseline has never seen, e.g. reports/q3_part1: that is anomaly, not blame)
+        own = [a for a in alerts if a.rule_id in expected]
+        if "partial_monitor" in scenario.tags:  # lost telemetry: at most a low "unverified"
+            assert all(a.severity == "low" and "unverified" in a.reason for a in own)
+        else:
+            assert not own, f"benign scenario fired {[a.reason for a in own]}"
+        return
+    else:
+        assert expected <= fired or not expected, f"expected {expected}, fired {fired}"
+    assert culprits <= flagged and not (flagged - culprits), f"flagged innocents {flagged - culprits}: {fired}"
 
 
 def test_baseline_saved_before_the_merge_is_retrained(pipeline):

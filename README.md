@@ -25,7 +25,7 @@ No model is needed: everything runs offline with scripted agents, and real model
   its own; an AI planner assigns the work; agents remember earlier rounds. Attacks are never asked of a model: they are
   scripted, or planted as prompt injections (16 of them, from phishing to a self-spreading worm, a poisoned memory and a sleeper note);
   internal-goal cases test agents with a goal of their own and no attacker.
-- **Threat Detection**: 29 rules (SG-001 to SG-029), a learned behavioural baseline, Bayesian risk with explanations,
+- **Threat Detection**: 30 rules (SG-001 to SG-030), a learned behavioural baseline, Bayesian risk with explanations,
   and an accuracy benchmark (30 attacks, 14 benign look-alikes; precision 1.0). A second, independent evidence source
   (egress proxy, audit and broker logs) keeps detection working when the agent log loses events.
 - **Live guard**: detection while a run happens. It refuses any out-of-policy action before it runs (whatever the
@@ -40,6 +40,9 @@ No model is needed: everything runs offline with scripted agents, and real model
   hash-chained log.
 - **Injection classifier** (SG-028): a model trained on public datasets scores every untrusted input; measured on
   datasets it never saw (`docs/injection-classifier.md`).
+- **Claim check** (SG-030): every action an agent says it took in a report is checked against what was actually
+  recorded (wrong destination, wrong file, a failed call reported as done, a hidden transfer, a call that never
+  happened). Where the monitor lost events, an unmatched claim is marked unverified, not a lie.
 - **Operations**: OCSF alert export for SIEMs, OWASP Agentic Top 10 coverage map, API keys with roles, a Gemini quota meter that refuses runs that won't fit, a dataset generator, an
   adaptive injection fuzzer, an internal-goal fuzzer (agents breaking policy for a goal of their own, no attacker), a
   real-agent demo enforced at the network (`scripts/demo_real_agents.py`), and CI on every pull request.

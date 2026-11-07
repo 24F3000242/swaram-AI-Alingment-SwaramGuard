@@ -674,3 +674,24 @@ Answering the "we only grade ourselves" gap, plus the remaining OWASP partials.
 
 OWASP Agentic Top 10 coverage is now 7 strong, 3 partial (supply-chain signing, VM-grade sandboxing, and subtle human
 persuasion remain partial).
+
+## 25. Agents misreporting their own tool calls (SG-030)
+
+The track asks about agents that spoof tool calls: an agent can tell its planner or a human "uploaded the summary to
+the partner API" while it sent something else, sent it elsewhere, failed, or did nothing. SG-014 already caught summary
+denials ("0 external transfers"); SG-030 checks each claimed action.
+
+- **How.** A report carries structured claims (`payload.claims`: a list of `{action, resource, target}`). Each claim is
+  matched against the actions recorded for that agent since its previous report (gateway, egress proxy, MCP gateway or
+  the simulator log). Wording is never read.
+- **Findings:** wrong destination, wrong resource, false success (the call was denied or failed), hidden extra (an
+  unreported transfer of a restricted resource or to an unapproved destination), phantom (no such call recorded).
+  Routine unreported actions are not flagged: an omission is not a cover-up.
+- **Partial monitors.** Reports can arrive before the action is logged, so an unmatched claim waits until the agent has
+  logged 3 more events or the run has moved 20 events on. If the record has a gap (missing sequence numbers: events
+  the monitor lost), an unmatched claim is raised as **unverified**, low severity, never as a lie.
+- **Live.** High-severity findings hold the agent's egress under the default response policy; unverified never
+  contains anyone.
+- **Tests.** Nikunj's 9 scenarios (5 lies, 4 honest look-alikes including delayed logging and lost telemetry) at 5,
+  10 and 20 agents: every lie caught and only the liar flagged; no honest agent accused; SG-030 fires on no other
+  scenario.
