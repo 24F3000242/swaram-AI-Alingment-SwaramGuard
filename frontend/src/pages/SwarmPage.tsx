@@ -11,7 +11,7 @@ import { shortId, time, pct } from "../lib/format";
 import { Cpu, Copy, Check, ExternalLink } from "lucide-react";
 import type { NormalizedEvent, Agent } from "../types";
 
-export function SwarmPage() {
+export function SwarmPage({ hideHeader = false }: { hideHeader?: boolean } = {}) {
   const { selectedRunId } = useAppState();
   const dashData = useRunData(api.dashboard, selectedRunId);
   const assessmentsData = useRunData(api.assessments, selectedRunId);
@@ -52,18 +52,20 @@ export function SwarmPage() {
   return (
     <div className="space-y-12">
       {/* 56px Title / 21px Subtitle with quick link */}
-      <PageHeader
-        title="Swarm."
-        subtitle="Agent communication topology, event swimlane, and role-based anomaly profiles."
-        actions={
-          <a
-            href="#/incidents"
-            className="inline-flex h-9 items-center rounded-full card px-4 text-[14px] font-medium text-[var(--text)] shadow-xs transition-colors hover:border-[var(--text-3)]"
-          >
-            <span>View incidents &rsaquo;</span>
-          </a>
-        }
-      />
+      {!hideHeader && (
+        <PageHeader
+          title="Swarm."
+          subtitle="Agent communication topology, event swimlane, and role-based anomaly profiles."
+          actions={
+            <a
+              href="#/incidents"
+              className="inline-flex h-9 items-center rounded-full card px-4 text-[14px] font-medium text-[var(--text)] shadow-xs transition-colors hover:border-[var(--text-3)]"
+            >
+              <span>View incidents &rsaquo;</span>
+            </a>
+          }
+        />
+      )}
 
       {!d && (
         <Card>

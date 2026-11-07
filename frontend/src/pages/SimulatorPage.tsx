@@ -2,7 +2,7 @@ import { useState } from "react";
 import { api } from "../api";
 import { GeminiQuota } from "../components/GeminiQuota";
 import { ResultViewer, type Column } from "../components/ResultViewer";
-import { Badge, Button, Drawer, Field, OutputSelect, PageHeader, Segmented, StatusBanner, inputCls, type Status } from "../components/ui";
+import { Badge, Button, CustomSelect, Drawer, Field, OutputSelect, PageHeader, Segmented, StatusBanner, inputCls, type Status } from "../components/ui";
 import { ThreatMatrixView } from "../components/ThreatMatrixView";
 import { shortId, time } from "../lib/format";
 import { useAppState, useRunData } from "../state";
@@ -202,18 +202,19 @@ export function SimulatorPage() {
         subtitle="Configure the multi-agent test scenario, swarm size, and gateway interception mode."
       >
         <div className="space-y-5">
-          <Field label="Scenario" hint={scenario?.description}>
-            <select
-              className={inputCls}
+          <Field label="Scenario" hint={scenario?.description} asDiv>
+            <CustomSelect
               value={cfg.scenario_id}
-              onChange={(e) => set("scenario_id", e.target.value)}
-            >
-              {meta?.scenarios.map((s) => (
-                <option key={s.scenario_id} value={s.scenario_id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("scenario_id", val)}
+              options={
+                meta?.scenarios.map((s) => ({
+                  value: s.scenario_id,
+                  label: s.name,
+                  description: s.description,
+                })) ?? []
+              }
+              ariaLabel="Select scenario"
+            />
           </Field>
 
           <Field label="Agent count" asDiv>
@@ -263,16 +264,17 @@ export function SimulatorPage() {
               onChange={(e) => set("rounds", Number(e.target.value))} className="w-full" aria-label="Rounds" />
           </Field>
 
-          <Field label="Gateway mode" hint={GATEWAY_HELP[cfg.gateway_mode]}>
-            <select
-              className={inputCls}
+          <Field label="Gateway mode" hint={GATEWAY_HELP[cfg.gateway_mode]} asDiv>
+            <CustomSelect
               value={cfg.gateway_mode}
-              onChange={(e) => set("gateway_mode", e.target.value as GatewayMode)}
-            >
-              <option value="monitor">monitor (would_block)</option>
-              <option value="enforce">enforce (deny before execution)</option>
-              <option value="off">off</option>
-            </select>
+              onChange={(val) => set("gateway_mode", val as GatewayMode)}
+              options={[
+                { value: "monitor", label: "monitor (would_block)", description: "Log policy evaluation without blocking" },
+                { value: "enforce", label: "enforce (deny before execution)", description: "Active interception: deny unauthorized actions" },
+                { value: "off", label: "off", description: "Bypass gateway policy checks" },
+              ]}
+              ariaLabel="Select gateway mode"
+            />
           </Field>
           <Field
             label={`Drop rate: ${Math.round(cfg.drop_rate * 100)}%`}
@@ -300,28 +302,29 @@ export function SimulatorPage() {
 
           <Field
             label="Agent backend"
+            asDiv
             hint={
               cfg.agent_mode === "autonomous"
                 ? "The model that makes each agent's decisions."
                 : "Only formats messages; never used as detection evidence."
             }
           >
-            <select
-              className={inputCls}
+            <CustomSelect
               value={cfg.agent_backend}
-              onChange={(e) => set("agent_backend", e.target.value)}
-            >
-              {(
-                meta?.agent_backends ?? [
-                  { id: "deterministic", label: "Deterministic templates", available: true },
-                ]
-              ).map((b) => (
-                <option key={b.id} value={b.id} disabled={!b.available}>
-                  {b.label}
-                  {b.available ? "" : " (no API key)"}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("agent_backend", val)}
+              options={
+                (
+                  meta?.agent_backends ?? [
+                    { id: "deterministic", label: "Deterministic templates", available: true },
+                  ]
+                ).map((b) => ({
+                  value: b.id,
+                  label: b.available ? b.label : `${b.label} (no API key)`,
+                  disabled: !b.available,
+                }))
+              }
+              ariaLabel="Select agent backend"
+            />
             {cfg.agent_backend === "gemini" && (
               <div className="mt-3"><GeminiQuota agentCount={cfg.agent_count} agentMode={cfg.agent_mode ?? "scripted"} rounds={cfg.rounds ?? 2} refreshKey={runs} onChange={setQuotaOk} /></div>
             )}

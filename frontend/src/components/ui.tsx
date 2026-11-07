@@ -4,6 +4,9 @@ import { download, type ExportFormat } from "../lib/export";
 import { dateTime } from "../lib/format";
 import { useAppState } from "../state";
 import type { ModuleInfo, ModuleInfoPart, Run } from "../types";
+import { CustomSelect, type SelectOption, type RawOption } from "./CustomSelect";
+
+export { CustomSelect, type SelectOption, type RawOption };
 
 export const STAGES = ["simulated", "collected", "detected", "responded", "evaluated"] as const;
 
@@ -169,16 +172,22 @@ export function StageBadges({ run }: { run: Run }) {
 export function RunSelect({ label = "Select run", requireStage }: { label?: string; requireStage?: typeof STAGES[number] }) {
   const { runs, selectedRunId, selectRun } = useAppState();
   const run = runs.find((r) => r.run_id === selectedRunId);
+  
+  const options: SelectOption<string>[] = runs.map((r) => ({
+    value: r.run_id,
+    label: `${r.run_id} · ${r.scenario_id.replace(/_/g, " ")}`,
+    description: `${r.agent_count} agents · ${dateTime(r.created_at)}`,
+  }));
+
   return (
-    <Field label={label}>
-      <select className={inputCls} value={selectedRunId ?? ""} onChange={(e) => selectRun(e.target.value || null)}>
-        {!runs.length && <option value="">No runs yet. Create one in Agent Simulator.</option>}
-        {runs.map((r) => (
-          <option key={r.run_id} value={r.run_id}>
-            {r.run_id} · {r.scenario_id} · {r.agent_count} agents · {dateTime(r.created_at)}
-          </option>
-        ))}
-      </select>
+    <Field label={label} asDiv>
+      <CustomSelect
+        value={selectedRunId ?? ""}
+        onChange={(val) => selectRun(val || null)}
+        options={options}
+        placeholder={runs.length ? "Select a run…" : "No runs yet. Create one in Agent Simulator."}
+        disabled={!runs.length}
+      />
       {run && (
         <div className="mt-2 space-y-1">
           <StageBadges run={run} />
@@ -195,11 +204,23 @@ export function RunSelect({ label = "Select run", requireStage }: { label?: stri
 export function OutputSelect({ value, onChange, collection }: { value: boolean; onChange: (v: boolean) => void; collection: string }) {
   const { health } = useAppState();
   return (
-    <Field label="Output dataset">
-      <select className={inputCls} value={value ? "store" : "preview"} onChange={(e) => onChange(e.target.value === "store")}>
-        <option value="store">Save to {health?.workspace ?? "default"}/{collection} ({health?.storage ?? "store"})</option>
-        <option value="preview">Preview only (don't save)</option>
-      </select>
+    <Field label="Output dataset" asDiv>
+      <CustomSelect
+        value={value ? "store" : "preview"}
+        onChange={(val) => onChange(val === "store")}
+        options={[
+          {
+            value: "store",
+            label: `Save to ${health?.workspace ?? "default"}/${collection}`,
+            description: `Persist output to storage (${health?.storage ?? "store"})`,
+          },
+          {
+            value: "preview",
+            label: "Preview only (don't save)",
+            description: "Run in memory without saving to disk",
+          },
+        ]}
+      />
     </Field>
   );
 }
@@ -335,6 +356,5 @@ export { ModePill } from "./ModePill";
 export { Pill } from "./Pill";
 export { Tile } from "./Tile";
 export { Footnotes } from "./Footnotes";
-export { ThemeToggle } from "./ThemeToggle";
 export { GlobalNav } from "./GlobalNav";
 export { Drawer } from "./Drawer";

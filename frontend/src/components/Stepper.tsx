@@ -25,7 +25,7 @@ export function Stepper({ steps, className = "" }: StepperProps) {
                   ? "bg-[var(--ok-bg)] text-[var(--ok)]"
                   : step.active
                   ? "bg-[var(--accent)]/10 text-[var(--accent)] ring-1 ring-[var(--accent)]"
-                  : "bg-black/[0.04] text-[var(--text-3)] dark:bg-white/[0.06]"
+                  : "bg-[var(--hairline-subtle)] text-[var(--text-3)]"
               }`}
             >
               <span className="flex h-4 w-4 items-center justify-center rounded-full text-[10px]">

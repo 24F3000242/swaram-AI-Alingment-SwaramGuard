@@ -1,10 +1,11 @@
+import { OutsideProofCard } from "../components/OutsideProofCard";
 import { useState } from "react";
 import { useAppState, useRunData } from "../state";
 import { api } from "../api";
 import { PageHeader } from "../components/PageHeader";
 import { Footnotes } from "../components/Footnotes";
 import { Drawer } from "../components/Drawer";
-import { Button, Field, inputCls } from "../components/ui";
+import { Button, CustomSelect, Field, inputCls } from "../components/ui";
 import { BENCHMARK_PROOF } from "../lib/threatRules";
 import { pct, num } from "../lib/format";
 import { Sliders, Play, RefreshCw } from "lucide-react";
@@ -19,7 +20,7 @@ const DEFAULT_SUITE_REQ: SuiteRequest = {
   persist: false,
 };
 
-export function EvaluationPage() {
+export function EvaluationPage({ hideHeader = false }: { hideHeader?: boolean } = {}) {
   const { selectedRunId, refreshRuns } = useAppState();
   const dashData = useRunData(api.dashboard, selectedRunId);
   const suiteData = useRunData(() => api.suite(DEFAULT_SUITE_REQ), "default-suite");
@@ -100,7 +101,8 @@ export function EvaluationPage() {
   return (
     <div className="space-y-10">
       {/* 56px Title / 21px Subtitle with quick action buttons */}
-      <PageHeader
+      {!hideHeader && (
+        <PageHeader
         title="Evaluation."
         subtitle="Empirical benchmark results measured on labeled multi-agent scenario runs."
         actions={
@@ -127,6 +129,7 @@ export function EvaluationPage() {
           </div>
         }
       />
+      )}
 
       {/* Section: Accuracy Benchmark Tiles */}
       <section className="space-y-4">
@@ -215,6 +218,9 @@ export function EvaluationPage() {
           </div>
         </div>
       </section>
+
+      {/* Section: Outside Proof Panel */}
+      <OutsideProofCard />
 
       {/* Section: Missing-Log Resilience Chart */}
       <section className="space-y-4">
@@ -498,20 +504,18 @@ export function EvaluationPage() {
         subtitle="Configure parameter sweep across agent scale and event loss rates."
       >
         <div className="space-y-6">
-          <Field label="Agents per run" hint="Agent swarm size">
-            <select
-              className={inputCls}
+          <Field label="Agents per run" hint="Agent swarm size" asDiv>
+            <CustomSelect
               value={suiteCfg.agent_count}
-              onChange={(e) =>
-                setSuiteCfg({ ...suiteCfg, agent_count: Number(e.target.value) as AgentCount })
+              onChange={(val) =>
+                setSuiteCfg({ ...suiteCfg, agent_count: Number(val) as AgentCount })
               }
-            >
-              {[3, 5, 10, 20].map((n) => (
-                <option key={n} value={n}>
-                  {n} agents
-                </option>
-              ))}
-            </select>
+              options={[3, 5, 10, 20].map((n) => ({
+                value: n,
+                label: `${n} agents`,
+              }))}
+              ariaLabel="Select agents per run"
+            />
           </Field>
 
           <Field label="Drop rates" hint="Comma-separated fraction of events deleted (0 to 0.9)">

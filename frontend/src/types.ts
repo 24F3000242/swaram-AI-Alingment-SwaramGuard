@@ -242,12 +242,39 @@ export interface LiveDetection {
 export interface Containment {
   agent_id: string;
   role?: string | null;
-  scope: "agent" | "egress";
+  scope?: "agent" | "egress";
   paused_at_sequence: number;
   paused_at: string;
   risk: number;
   explanation?: string | null;
   blocked_actions: number;
+  trigger?: string;
+  rule_id?: string;
+}
+
+export interface OwaspRuleRef {
+  rule_id: string;
+  name: string;
+}
+
+export interface OwaspRisk {
+  id: string;
+  name: string;
+  coverage: "strong" | "partial" | "none";
+  rules: OwaspRuleRef[];
+  controls: string[];
+  gaps: string;
+}
+
+export interface OwaspCoverageResult {
+  framework: string;
+  summary: {
+    strong: number;
+    partial: number;
+    none: number;
+  };
+  risks: OwaspRisk[];
+  rules_not_mapped: string[];
 }
 
 export interface LiveReport {

@@ -195,6 +195,47 @@ def active_runs() -> list[dict[str, Any]]:
     return list(ACTIVE_RUNS.values())
 
 
+@app.post("/api/live/reset")
+def reset_live_all(p: Pipeline = P) -> dict[str, Any]:
+    """Operator reset: clear live hub history, reset sequence counter, release all pending containments and unpause all agents."""
+    import itertools
+    from app.services.live_hub import HUB, ACTIVE_GUARDS, ACTIVE_STREAMS
+    from app.services import review
+
+    # 1. Clear active stream guards and unpause agents
+    for guard in list(ACTIVE_GUARDS.values()):
+        try:
+            for agent_id in list(getattr(guard, "registry", [])):
+                guard.release(agent_id)
+        except Exception:
+            pass
+    ACTIVE_GUARDS.clear()
+    ACTIVE_STREAMS.clear()
+
+    # 2. Release all pending review items so agents/containments are cleared
+    released_count = 0
+    for item in review.items(p.store, "pending"):
+        try:
+            review.decide(p.store, item["review_id"], "release", note="Operator reset all", by="operator")
+            released_count += 1
+        except Exception:
+            pass
+
+    # 3. Clear LiveHub history and reset sequence
+    with HUB._lock:
+        HUB.history.clear()
+        HUB._seq = itertools.count(1)
+
+    # 4. Announce reset on the live stream
+    HUB.publish("reset", {"message": "All telemetry, containment, and agent states have been reset by operator", "released_count": released_count})
+
+    return {
+        "status": "ok",
+        "message": "Live hub history, active guards, and pending containments reset",
+        "released_containments": released_count,
+    }
+
+
 @app.websocket("/api/live")
 async def live(ws: WebSocket):
     """Every event, detection, containment and quarantine, pushed as it happens.

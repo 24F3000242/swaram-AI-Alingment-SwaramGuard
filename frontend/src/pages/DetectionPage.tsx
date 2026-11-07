@@ -9,6 +9,7 @@ import { AssessmentDetail, auditColumns, BaselineCard, BenchmarkCard, riskColumn
 import { LiveGuardCard } from "./LiveGuardCard";
 import { Sliders, Play, Copy, Check } from "lucide-react";
 import { THREAT_CATEGORIES, THREAT_RULES } from "../lib/threatRules";
+import { ThreatMatrixView } from "../components/ThreatMatrixView";
 
 // 5-column maximum for clean, overflow-free alert listing
 const columns: Column<Alert>[] = [
@@ -62,7 +63,7 @@ export function DetectionPage() {
   const [persist, setPersist] = useState(true);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status>(null);
-  const [activeTab, setActiveTab] = useState<"findings" | "rules" | "liveguard" | "baseline" | "audit">("findings");
+  const [activeTab, setActiveTab] = useState<"findings" | "rules" | "observability" | "liveguard" | "baseline" | "audit">("findings");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -183,6 +184,16 @@ export function DetectionPage() {
             }`}
           >
             Rules (20)
+          </button>
+          <button
+            onClick={() => setActiveTab("observability")}
+            className={`rounded-full px-4 py-1.5 text-[14px] font-medium transition-all ${
+              activeTab === "observability"
+                ? "bg-[var(--card)] text-[var(--text)] shadow-xs"
+                : "text-[var(--text-2)] hover:text-[var(--text)]"
+            }`}
+          >
+            Observability (12)
           </button>
           <button
             onClick={() => setActiveTab("liveguard")}
@@ -345,6 +356,13 @@ export function DetectionPage() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Tab 2b: Observability (12 Layers) */}
+      {activeTab === "observability" && (
+        <div className="space-y-6">
+          <ThreatMatrixView mode="detection" />
         </div>
       )}
 

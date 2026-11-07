@@ -3,7 +3,7 @@ import { api } from "../api";
 import { GraphView } from "../components/GraphView";
 import { ResultViewer, type Column } from "../components/ResultViewer";
 import { Timeline } from "../components/Timeline";
-import { Badge, Button, Card, Empty, ExportMenu, Field, OutputSelect, PageHeader, RunSelect, Stat, StatusBanner, inputCls, type Status } from "../components/ui";
+import { Badge, Button, Card, CustomSelect, Empty, ExportMenu, Field, OutputSelect, PageHeader, RunSelect, Stat, StatusBanner, inputCls, type Status } from "../components/ui";
 import { BENCHMARK_PROOF } from "../lib/threatRules";
 import { num, pct, shortId } from "../lib/format";
 import { useAppState, useRunData } from "../state";
@@ -218,10 +218,13 @@ export function DashboardPage() {
 
       <Card title="Evaluation suite: labeled scenarios × missing events">
         <div className="grid gap-4 md:grid-cols-4">
-          <Field label="Agents per run">
-            <select className={inputCls} value={suiteCfg.agent_count} onChange={(e) => setSuiteCfg({ ...suiteCfg, agent_count: Number(e.target.value) as AgentCount })}>
-              {[3, 5, 10, 20].map((n) => <option key={n}>{n}</option>)}
-            </select>
+          <Field label="Agents per run" asDiv>
+            <CustomSelect
+              value={suiteCfg.agent_count}
+              onChange={(val) => setSuiteCfg({ ...suiteCfg, agent_count: Number(val) as AgentCount })}
+              options={[3, 5, 10, 20].map((n) => ({ value: n, label: `${n} agents` }))}
+              ariaLabel="Select agents per run"
+            />
           </Field>
           <Field label="Drop rates" hint="Comma-separated, 0 to 0.9"><input className={inputCls} value={suiteCfg.drop_rates} onChange={(e) => setSuiteCfg({ ...suiteCfg, drop_rates: e.target.value })} /></Field>
           <Field label="Seeds" hint="Max 5"><input className={inputCls} value={suiteCfg.seeds} onChange={(e) => setSuiteCfg({ ...suiteCfg, seeds: e.target.value })} /></Field>

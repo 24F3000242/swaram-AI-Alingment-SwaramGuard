@@ -2,7 +2,7 @@ import { AUTH_REQUIRED, authHeaders } from "./lib/apiKey";
 import type {
   Agent, AgentAssessment, Alert, AuditItem, BaselineSummary, GeminiQuotaStatus, ReviewItem, BenchmarkResult, LiveReport, ReplayCase, CollectionResult, Dashboard, DetectionResult, DetectionRule, EvaluationResult, Meta, ModuleInfo,
   NormalizedEvent, RawEvent, ResponseAction, ResponsePolicy, ResponseResult, Run, ScenarioConfig, SimulationResult,
-  SuiteRequest, SuiteResult, AgentGraph,
+  SuiteRequest, SuiteResult, AgentGraph, OwaspCoverageResult,
 } from "./types";
 
 export class ApiError extends Error {
@@ -72,6 +72,7 @@ export const api = {
   stopRun: (runId: string, note?: string) =>
     request<{ paused: Record<string, string> }>(`/live/${runId}/stop`, { method: "POST", body: JSON.stringify({ note }) }),
   startRun: (cfg: ScenarioConfig) => request<{ run_id: string; stream: string }>("/runs/start", { method: "POST", body: JSON.stringify(cfg) }),
+  resetLive: () => request<{ status: string; message: string; released_containments: number }>("/live/reset", { method: "POST" }),
   benchmark: (full = false) => post<BenchmarkResult>(`/detection/benchmark?full=${full}`, {}),
   trainBaseline: (body: { source: "synthetic" | "run" | "ai"; run_id?: string; confirm_clean?: boolean; runs?: number }) => post<BaselineSummary>("/detection/baseline", body),
   rules: () => request<DetectionRule[]>("/detection-rules"),
@@ -82,4 +83,5 @@ export const api = {
   evaluate: (run_id: string, persist: boolean) => post<EvaluationResult>("/evaluate", { run_id, persist }),
   suite: (req: SuiteRequest) => post<SuiteResult>("/evaluate/suite", req),
   evaluations: () => request<Array<Record<string, unknown>>>("/evaluations"),
+  owaspCoverage: () => request<OwaspCoverageResult>("/coverage/owasp"),
 };

@@ -25,7 +25,7 @@ const STYLES: Record<string, { bg: string; text: string; dot: string }> = {
 export function Pill({ value, children, className = "" }: PillProps) {
   const key = String(value).toLowerCase();
   const style = STYLES[key] ?? {
-    bg: "bg-black/[0.05] dark:bg-white/[0.08]",
+    bg: "bg-[var(--hairline-subtle)]",
     text: "text-[var(--text-2)]",
     dot: "bg-[var(--text-3)]",
   };

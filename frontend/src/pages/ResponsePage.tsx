@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { ResultViewer, type Column } from "../components/ResultViewer";
-import { Badge, Button, Drawer, Field, ModePill, OutputSelect, PageHeader, RunSelect, StatusBanner, inputCls, type Status } from "../components/ui";
+import { Badge, Button, CustomSelect, Drawer, Field, ModePill, OutputSelect, PageHeader, RunSelect, StatusBanner, type Status } from "../components/ui";
 import { shortId, time } from "../lib/format";
 import { useAppState, useRunData } from "../state";
 import type { ResponseAction, ResponseDecision, ResponsePolicy, Severity } from "../types";
@@ -201,22 +201,24 @@ export function ResponsePage() {
             <div className="space-y-4 border-t border-[var(--hairline)]/60 pt-4">
               <Field
                 label="Enforcement mode"
+                asDiv
                 hint={
                   policy.mode === "enforce"
                     ? "Records blocked only where gateway denied request."
                     : "Decisions are simulated: would_block / would_pause."
                 }
               >
-                <select
-                  className={inputCls}
+                <CustomSelect
                   value={policy.mode}
-                  onChange={(e) =>
-                    update({ mode: e.target.value as ResponsePolicy["mode"] })
+                  onChange={(val) =>
+                    update({ mode: val as ResponsePolicy["mode"] })
                   }
-                >
-                  <option value="simulate">simulate (replay only)</option>
-                  <option value="enforce">enforce (active gateway)</option>
-                </select>
+                  options={[
+                    { value: "simulate", label: "simulate (replay only)", description: "Record decisions without blocking" },
+                    { value: "enforce", label: "enforce (active gateway)", description: "Active interception: deny unauthorized actions" },
+                  ]}
+                  ariaLabel="Select enforcement mode"
+                />
               </Field>
 
               <div className="space-y-2">
@@ -226,26 +228,28 @@ export function ResponsePage() {
                 <div className="grid grid-cols-2 gap-2">
                   {SEVERITIES.map((s) => (
                     <div key={s} className="rounded-lg bg-[var(--card-alt)] p-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <Badge value={s} />
-                        <select
-                          className="rounded border border-[var(--hairline)] bg-[var(--card)] px-2 py-0.5 text-[12px] text-[var(--text)]"
-                          value={policy.severity_actions[s]}
-                          onChange={(e) =>
-                            update({
-                              severity_actions: {
-                                ...policy.severity_actions,
-                                [s]: e.target.value as ResponseDecision,
-                              },
-                            })
-                          }
-                        >
-                          {DECISIONS.map((d) => (
-                            <option key={d} value={d}>
-                              {d}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="w-28">
+                          <CustomSelect
+                            size="sm"
+                            variant="subtle"
+                            value={policy.severity_actions[s]}
+                            onChange={(val) =>
+                              update({
+                                severity_actions: {
+                                  ...policy.severity_actions,
+                                  [s]: val as ResponseDecision,
+                                },
+                              })
+                            }
+                            options={DECISIONS.map((d) => ({
+                              value: d,
+                              label: d,
+                            }))}
+                            ariaLabel={`Decision for ${s} severity`}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}

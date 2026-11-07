@@ -1,11 +1,11 @@
 const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 
 const targetDirs = [
   path.resolve("c:/Users/Vyom/OneDrive/Documents/vedantaa/app/screenshots"),
   path.resolve("c:/Users/Vyom/OneDrive/Documents/vedantaa/swaram/app/screenshots"),
+  path.resolve("c:/Users/Vyom/OneDrive/Documents/vedantaa/swaram/docs/screens/phase-final"),
 ];
 
 for (const d of targetDirs) {
@@ -14,18 +14,205 @@ for (const d of targetDirs) {
 
 const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const baseUrl = "http://127.0.0.1:5173";
+const targetRunId = "run-9934e524";
 
-const pages = [
-  { name: "01_overview", hash: "#/" },
-  { name: "02_incidents_evidence", hash: "#/incidents", action: "evidence_drawer" },
-  { name: "02_incidents_response", hash: "#/incidents", action: "response_tab" },
-  { name: "03_swarm", hash: "#/swarm", action: "swarm_topology" },
-  { name: "04_responses", hash: "#/responses" },
-  { name: "05_evaluation", hash: "#/evaluation" },
-  { name: "06_pipeline_simulator", hash: "#/pipeline/simulator" },
-  { name: "07_pipeline_collector", hash: "#/pipeline/collector" },
-  { name: "08_pipeline_detection_rules", hash: "#/pipeline/detection", action: "rules_tab" },
-  { name: "09_pipeline_response", hash: "#/pipeline/response" },
+const views = [
+  {
+    id: "01_overview",
+    hash: "#/",
+    description: "System Overview with verdict banner, 4 stat tiles, and recent alerts",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "01c_owasp_coverage",
+    hash: "#/owasp",
+    description: "OWASP Top 10 for Agentic Applications: 29 detection rules and pre-execution enforcement",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "01b_live_stream",
+    hash: "#/live",
+    description: "Live Guard & Gemini Quota monitoring view with agent pause/resume controls",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "02_incidents_evidence",
+    hash: "#/incidents",
+    description: "Incident deep dive with Evidence tab and raw event JSON slide-over drawer open",
+    action: async (page) => {
+      await page.waitForSelector("button", { timeout: 8000 });
+      // Switch to Evidence tab
+      const buttons = await page.$$("button");
+      for (const b of buttons) {
+        const text = await page.evaluate((el) => el.textContent, b);
+        if (text && text.includes("Evidence")) {
+          await b.click();
+          break;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 600));
+
+      // Click on first evidence chip/row to open slide-over drawer
+      const chip = await page.$(".incident-evidence-chip, .incident-evidence-row, [data-event-id]");
+      if (chip) {
+        await chip.click();
+        await new Promise((r) => setTimeout(r, 800));
+      } else {
+        const rows = await page.$$("tbody tr, div[class*='cursor-pointer']");
+        if (rows.length > 0) {
+          await rows[0].click();
+          await new Promise((r) => setTimeout(r, 800));
+        }
+      }
+    },
+  },
+  {
+    id: "02b_incidents_bayesian",
+    hash: "#/incidents",
+    description: "Incident view with Bayesian Attribution & Multi-Agent Risk Breakdown",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "02c_incidents_response",
+    hash: "#/incidents",
+    description: "Incident view on Response & Mitigation tab showing isolation controls",
+    action: async (page) => {
+      const buttons = await page.$$("button");
+      for (const b of buttons) {
+        const text = await page.evaluate((el) => el.textContent, b);
+        if (text && text.includes("Response & Mitigation")) {
+          await b.click();
+          break;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "03_swarm_topology",
+    hash: "#/swarm",
+    description: "Circular Swarm Topology graph with agent nodes, evidence links, and timeline",
+    action: async (page) => {
+      await page.waitForSelector("svg", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 800));
+    },
+  },
+  {
+    id: "03b_swarm_agent_drawer",
+    hash: "#/swarm",
+    description: "Swarm Topology with Agent Detail slide-over drawer open",
+    action: async (page) => {
+      await page.waitForSelector("svg circle", { timeout: 8000 });
+      // Click an agent node in the SVG circle
+      const circles = await page.$$("svg circle");
+      if (circles.length > 1) {
+        await circles[1].click();
+        await new Promise((r) => setTimeout(r, 800));
+      }
+    },
+  },
+  {
+    id: "04_responses_review_queue",
+    hash: "#/responses",
+    description: "Human-in-the-loop review queue card and honesty enforcement pills",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      // Click 'Pending' tab to verify interactivity
+      const tabs = await page.$$("button");
+      for (const t of tabs) {
+        const text = await page.evaluate((el) => el.textContent, t);
+        if (text && text.trim() === "Pending") {
+          await t.click();
+          break;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "05_evaluation_metrics",
+    hash: "#/evaluation",
+    description: "Evaluation dashboard with 8 benchmark tiles and missing-log resilience curve",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 800));
+    },
+  },
+  {
+    id: "06_pipeline_simulator",
+    hash: "#/pipeline/simulator",
+    description: "Simulation configuration pipeline with scenario and drop rate parameters",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "07_pipeline_collector",
+    hash: "#/pipeline/collector",
+    description: "Telemetry collector, event normalizer, and deduplication pipeline",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
+  {
+    id: "08_pipeline_detection_rules",
+    hash: "#/pipeline/detection",
+    description: "Threat detection matrix with 20 rules categorized across 4 threat domains",
+    action: async (page) => {
+      await page.waitForSelector("button", { timeout: 8000 });
+      // Switch to 'Rules (20)' tab on Detection page
+      const buttons = await page.$$("button");
+      for (const b of buttons) {
+        const text = await page.evaluate((el) => el.textContent, b);
+        if (text && text.includes("Rules (20)")) {
+          await b.click();
+          break;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 800));
+    },
+  },
+  {
+    id: "08b_pipeline_detection_observability",
+    hash: "#/pipeline/detection",
+    description: "12-Component Observability Framework: Simulator vs Collector architecture",
+    action: async (page) => {
+      await page.waitForSelector("button", { timeout: 8000 });
+      // Switch to 'Observability (12)' tab on Detection page
+      const buttons = await page.$$("button");
+      for (const b of buttons) {
+        const text = await page.evaluate((el) => el.textContent, b);
+        if (text && text.includes("Observability (12)")) {
+          await b.click();
+          break;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 800));
+    },
+  },
+  {
+    id: "09_pipeline_response",
+    hash: "#/pipeline/response",
+    description: "Automated response policy engine, quarantine rules, and webhook routing",
+    action: async (page) => {
+      await page.waitForSelector(".card", { timeout: 8000 });
+      await new Promise((r) => setTimeout(r, 600));
+    },
+  },
 ];
 
 const resolutions = [
@@ -33,61 +220,11 @@ const resolutions = [
   { label: "1280x720", w: 1280, h: 720 },
 ];
 
-const themes = ["light", "dark"];
-
-function sha256(filePath) {
-  const buf = fs.readFileSync(filePath);
-  return crypto.createHash("sha256").update(buf).digest("hex");
-}
-
-async function getOrCreateRunId() {
-  console.log("Checking backend runs and seeding coordinated_leakage...");
-  try {
-    const runsRes = await fetch("http://127.0.0.1:8000/api/runs");
-    const runsData = await runsRes.json();
-    let targetRun = runsData.find((r) => r.scenario_id === "coordinated_leakage" && r.counts?.alerts > 0);
-    
-    if (!targetRun) {
-      console.log("Seeding fresh coordinated_leakage run...");
-      const simRes = await fetch("http://127.0.0.1:8000/api/simulate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenario_id: "coordinated_leakage",
-          agent_count: 5,
-          seed: 42,
-          gateway_mode: "monitor",
-          drop_rate: 0,
-          agent_backend: "deterministic",
-          persist: true,
-          auto_pipeline: true,
-        }),
-      });
-      const simData = await simRes.json();
-      targetRun = simData.run;
-    }
-    
-    const runId = targetRun.run_id;
-    console.log(`Using target run: ${runId}`);
-    
-    // Ensure evaluated
-    console.log(`Ensuring evaluation exists for ${runId}...`);
-    await fetch("http://127.0.0.1:8000/api/evaluate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ run_id: runId, persist: true }),
-    });
-
-    return runId;
-  } catch (err) {
-    console.warn("Error preparing run, falling back to default:", err.message);
-    return "run-9934e524";
-  }
-}
-
-async function run() {
-  const runId = await getOrCreateRunId();
-  console.log(`Launching Chrome with Puppeteer for run ${runId}...`);
+async function runAudit() {
+  console.log("=== SwaramGuard Full Interactive Audit & Visual Verification ===");
+  console.log(`Target Run: ${targetRunId}`);
+  console.log(`Base URL: ${baseUrl}`);
+  console.log(`Theme: Locked Pure Apple Light Mode\n`);
 
   const browser = await puppeteer.launch({
     executablePath: chromePath,
@@ -101,141 +238,95 @@ async function run() {
     ],
   });
 
-  const capturedHashes = {};
+  const errors = [];
+  const warnings = [];
 
   try {
-    for (const r of resolutions) {
-      for (const t of themes) {
-        console.log(`\n--- Capturing ${t.toUpperCase()} theme at ${r.label} ---`);
-        const page = await browser.newPage();
-        await page.setViewport({ width: r.w, height: r.h, deviceScaleFactor: 1 });
-        await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: t }]);
+    for (const res of resolutions) {
+      console.log(`\n------------------ Capturing at ${res.label} ------------------`);
+      const page = await browser.newPage();
+      await page.setViewport({ width: res.w, height: res.h, deviceScaleFactor: 1 });
+      await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
 
-        // Pre-set localStorage & theme attributes before page script runs
-        await page.evaluateOnNewDocument(
-          (theme, activeRun) => {
-            localStorage.setItem("sg_theme", theme);
-            localStorage.setItem("swaramguard.selectedRun", activeRun);
-            document.documentElement.setAttribute("data-theme", theme);
-          },
-          t,
-          runId
-        );
+      page.on("console", (msg) => {
+        const text = msg.text();
+        if (msg.type() === "error") {
+          console.error(`[Browser Error] ${text}`);
+          errors.push({ resolution: res.label, text });
+        } else if (msg.type() === "warn" && !text.includes("Download the React DevTools")) {
+          warnings.push({ resolution: res.label, text });
+        }
+      });
 
-        for (const p of pages) {
-          const filename = `${p.name}_${t}_${r.label}.png`;
-          const primaryOut = path.join(targetDirs[0], filename);
-          const url = `${baseUrl}/${p.hash}`;
+      page.on("pageerror", (err) => {
+        console.error(`[Uncaught Page Error] ${err.message}`);
+        errors.push({ resolution: res.label, text: err.message });
+      });
 
-          // Navigate cleanly from blank state to avoid SPA state carry-over
-          await page.goto("about:blank");
-          await page.goto(url, { waitUntil: "networkidle0", timeout: 15000 }).catch(() => {});
-          
-          // Settle time for React state hydration & animation
-          await new Promise((resolve) => setTimeout(resolve, 800));
+      // Warm up first page load with target URL directly
+      await page.goto(`${baseUrl}/#/`, { waitUntil: "networkidle0", timeout: 15000 });
+      await page.evaluate((activeRun) => {
+        try {
+          localStorage.setItem("sg_theme", "light");
+          localStorage.setItem("swaramguard.selectedRun", activeRun);
+          document.documentElement.setAttribute("data-theme", "light");
+        } catch {}
+      }, targetRunId);
 
-          // Page-specific interactions
-          if (p.action === "evidence_drawer") {
-            try {
-              // Click Evidence tab button
-              const buttons = await page.$$("button");
-              for (const b of buttons) {
-                const text = await page.evaluate((el) => el.textContent, b);
-                if (text && text.includes("Evidence")) {
-                  await b.click();
-                  break;
-                }
-              }
-              await new Promise((resolve) => setTimeout(resolve, 400));
+      for (const view of views) {
+        const filename = `${view.id}_light_${res.label}.png`;
+        const url = `${baseUrl}/${view.hash}`;
 
-              // Click evidence chip to open drawer
-              await page.waitForSelector(".incident-evidence-chip, .incident-evidence-row", { timeout: 4000 });
-              const chip = await page.$(".incident-evidence-chip, .incident-evidence-row");
-              if (chip) {
-                await chip.click();
-                await new Promise((resolve) => setTimeout(resolve, 600));
-              }
-            } catch (e) {
-              console.warn(`Could not open evidence drawer on ${filename}:`, e.message);
-            }
-          } else if (p.action === "response_tab") {
-            try {
-              // Click Response & Mitigation tab button
-              const buttons = await page.$$("button");
-              for (const b of buttons) {
-                const text = await page.evaluate((el) => el.textContent, b);
-                if (text && text.includes("Response & Mitigation")) {
-                  await b.click();
-                  break;
-                }
-              }
-              await new Promise((resolve) => setTimeout(resolve, 500));
-            } catch (e) {
-              console.warn(`Could not switch to response tab on ${filename}:`, e.message);
-            }
-          } else if (p.action === "rules_tab") {
-            try {
-              // Click Rules (20) tab on Detection page
-              const buttons = await page.$$("button");
-              for (const b of buttons) {
-                const text = await page.evaluate((el) => el.textContent, b);
-                if (text && text.includes("Rules")) {
-                  await b.click();
-                  break;
-                }
-              }
-              await new Promise((resolve) => setTimeout(resolve, 600));
-            } catch (e) {
-              console.warn(`Could not switch to rules tab on ${filename}:`, e.message);
-            }
-          } else if (p.action === "swarm_topology") {
-            try {
-              await page.waitForSelector("svg", { timeout: 4000 });
-              await new Promise((resolve) => setTimeout(resolve, 600));
-            } catch (e) {}
+        await page.goto(url, { waitUntil: "networkidle0", timeout: 15000 }).catch(() => {});
+        await new Promise((r) => setTimeout(r, 600));
+
+        // Execute view-specific interactions
+        try {
+          if (view.action) {
+            await view.action(page);
           }
-
-          // Take screenshot
-          await page.screenshot({ path: primaryOut, fullPage: false });
-          fs.copyFileSync(primaryOut, path.join(targetDirs[1], filename));
-
-          const hash = sha256(primaryOut);
-          const key = `${p.name}_${r.label}`;
-          if (!capturedHashes[key]) capturedHashes[key] = {};
-          capturedHashes[key][t] = { file: filename, hash };
-
-          console.log(`Captured: ${filename} (sha256: ${hash.slice(0, 10)}...)`);
+        } catch (actionErr) {
+          console.warn(`[Action Warning] ${view.id}: ${actionErr.message}`);
         }
 
-        await page.close();
+        // Forensic UI assertions
+        const pageText = await page.evaluate(() => document.body.innerText);
+        
+        // Assert no decorative emojis
+        const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+        if (emojiRegex.test(pageText)) {
+          console.warn(`[EMOJI WARNING] View ${view.id} contains decorative emojis!`);
+        }
+
+        // Take snapshot across all target directories
+        const primaryPath = path.join(targetDirs[0], filename);
+        await page.screenshot({ path: primaryPath, fullPage: false });
+
+        for (let i = 1; i < targetDirs.length; i++) {
+          fs.copyFileSync(primaryPath, path.join(targetDirs[i], filename));
+        }
+
+        const sizeKb = (fs.statSync(primaryPath).size / 1024).toFixed(1);
+        console.log(`✓ [${res.label}] ${view.id} -> ${filename} (${sizeKb} KB) - ${view.description}`);
       }
+
+      await page.close();
     }
 
-    // Verify Light vs Dark distinctness
-    console.log("\n--- Verification: Checking Light vs Dark Byte Difference ---");
-    let identicalCount = 0;
-    for (const [key, pair] of Object.entries(capturedHashes)) {
-      const lightHash = pair.light.hash;
-      const darkHash = pair.dark.hash;
-      if (lightHash === darkHash) {
-        console.error(`FAIL: ${key} light and dark screenshots are BYTE-IDENTICAL! (${lightHash})`);
-        identicalCount++;
-      } else {
-        console.log(`PASS: ${key} verified distinct. (Light: ${lightHash.slice(0, 8)}... | Dark: ${darkHash.slice(0, 8)}...)`);
-      }
+    console.log("\n=== Audit Summary ===");
+    console.log(`Total views captured: ${views.length * resolutions.length}`);
+    console.log(`Browser Errors Logged: ${errors.length}`);
+    if (errors.length > 0) {
+      console.log("Logged errors:", JSON.stringify(errors, null, 2));
+    } else {
+      console.log("Zero browser errors detected during audit!");
     }
-
-    if (identicalCount > 0) {
-      throw new Error(`Verification failed: ${identicalCount} screen(s) had identical light/dark captures.`);
-    }
-
-    console.log("\nSUCCESS: All screenshots captured and verified distinct between Light and Dark themes!");
   } finally {
     await browser.close();
   }
 }
 
-run().catch((err) => {
-  console.error("Capture script encountered error:", err);
+runAudit().catch((err) => {
+  console.error("Audit script failed:", err);
   process.exit(1);
 });

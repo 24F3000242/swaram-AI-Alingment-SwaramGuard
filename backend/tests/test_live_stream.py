@@ -96,3 +96,11 @@ def test_a_fresh_pipeline_keeps_every_rule_after_the_first_call():
     first, second = p.rules(), p.rules()
     assert {r.rule_id for r in second} == {r.rule_id for r in first} == {r.rule_id for r in DEFAULT_RULES}
     assert next(r for r in second if r.rule_id == "SG-004").params.get("profile")  # the trained baseline is kept
+
+
+def test_reset_live_endpoint(client):
+    r = client.post("/api/live/reset")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "ok"
+    assert "released_containments" in data

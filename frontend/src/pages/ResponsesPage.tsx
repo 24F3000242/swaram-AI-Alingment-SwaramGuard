@@ -11,7 +11,7 @@ import { ShieldCheck, ShieldAlert, Sliders } from "lucide-react";
 import { ReviewQueueCard } from "./ReviewQueueCard";
 import type { ResponseAction } from "../types";
 
-export function ResponsesPage() {
+export function ResponsesPage({ hideHeader = false }: { hideHeader?: boolean } = {}) {
   const { selectedRunId } = useAppState();
   const responsesData = useRunData(api.responses, selectedRunId);
   const alertsData = useRunData(api.alerts, selectedRunId);
@@ -38,19 +38,21 @@ export function ResponsesPage() {
   return (
     <div className="space-y-8">
       {/* 56px Title / 21px Subtitle with quick link */}
-      <PageHeader
-        title="Responses."
-        subtitle="Auditable mitigation actions mapped from threat alerts to controllable gateway decisions."
-        actions={
-          <a
-            href="#/pipeline/response"
-            className="inline-flex h-9 items-center gap-1.5 rounded-full card px-4 text-[14px] font-medium text-[var(--text)] shadow-xs transition-colors hover:border-[var(--text-3)]"
-          >
-            <Sliders size={14} className="text-[var(--text-3)]" />
-            <span>Configure policy &rsaquo;</span>
-          </a>
-        }
-      />
+      {!hideHeader && (
+        <PageHeader
+          title="Responses."
+          subtitle="Auditable mitigation actions mapped from threat alerts to controllable gateway decisions."
+          actions={
+            <a
+              href="#/pipeline/response"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full card px-4 text-[14px] font-medium text-[var(--text)] shadow-xs transition-colors hover:border-[var(--text-3)]"
+            >
+              <Sliders size={14} className="text-[var(--text-3)]" />
+              <span>Configure policy &rsaquo;</span>
+            </a>
+          }
+        />
+      )}
 
       {/* Human review of live containment (paused agents, held egress, quarantined inputs) */}
       <ReviewQueueCard />

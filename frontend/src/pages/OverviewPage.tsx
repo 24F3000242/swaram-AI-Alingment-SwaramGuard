@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useAppState, useRunData } from "../state";
 import { api } from "../api";
 import { PageHeader } from "../components/PageHeader";
@@ -6,6 +7,8 @@ import { Pill } from "../components/Pill";
 import { Stepper } from "../components/Stepper";
 import { Footnotes } from "../components/Footnotes";
 import { Card, Empty } from "../components/ui";
+import { Drawer } from "../components/Drawer";
+import { GraphView } from "../components/GraphView";
 import { download } from "../lib/export";
 import { deriveIncidentTitle, getAgentRole } from "../lib/incidentHelper";
 import { ArrowRight, Sparkles, ShieldCheck, ShieldAlert, Clock } from "lucide-react";
@@ -22,6 +25,17 @@ export function OverviewPage() {
   const alerts = alertsData.data ?? [];
   const responses = responsesData.data ?? [];
   const agents = agentsData.data ?? [];
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const selectedAgent = agents.find((a) => a.agent_id === selectedAgentId);
+  const selectedAgentAlerts = alerts.filter((alt) => alt.agent_ids.includes(selectedAgentId ?? ""));
+
+  const alertEventIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of alerts) {
+      for (const eid of a.event_ids ?? []) set.add(eid);
+    }
+    return set;
+  }, [alerts]);
 
   const topAlert = alerts[0];
   const totalThreats = d?.totals.threats ?? alerts.length;
@@ -238,6 +252,42 @@ export function OverviewPage() {
         />
       </div>
 
+      {/* Swarm Communication Topology (Models Graph) */}
+      <Card
+        title="Swarm communication topology"
+        actions={
+          <a
+            href="#/swarm"
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-[var(--link)] hover:underline"
+          >
+            <span>Explore full topology</span>
+            <ArrowRight size={14} />
+          </a>
+        }
+      >
+        <div className="py-2">
+          {isNoRun ? (
+            <Empty>Select a simulation run from the top bar to inspect agent communication topology.</Empty>
+          ) : isLoading ? (
+            <Empty>Loading communication topology for {selectedRunId}...</Empty>
+          ) : d?.graph ? (
+            <GraphView
+              graph={d.graph}
+              height={400}
+              alertEventIds={alertEventIds}
+              selectedNodeId={selectedAgentId}
+              onSelectNode={(nodeId) => {
+                if (!nodeId.startsWith("external:")) {
+                  setSelectedAgentId(nodeId);
+                }
+              }}
+            />
+          ) : (
+            <Empty>No communication topology recorded for this run.</Empty>
+          )}
+        </div>
+      </Card>
+
       {/* Two Columns: Latest Incidents & Operating Mode */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Latest Incidents List */}
@@ -348,6 +398,93 @@ export function OverviewPage() {
           </Card>
         </div>
       </div>
+
+      {/* Agent Dossier Slide-Over Drawer */}
+      <Drawer
+        open={!!selectedAgent}
+        onClose={() => setSelectedAgentId(null)}
+        title={selectedAgent ? `Agent ${selectedAgent.agent_id} Dossier` : "Agent Dossier"}
+        subtitle={`Role: ${selectedAgent?.role ?? "Unknown"} · Baseline: ${selectedAgent?.is_malicious ? "Malicious" : "Normal"}`}
+      >
+        {selectedAgent && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between rounded-xl bg-[var(--card-alt)] p-4 border border-[var(--hairline)]/60">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-3)]">
+                  Swarm Identity
+                </span>
+                <div className="mt-0.5 font-mono text-[16px] font-semibold text-[var(--text)]">
+                  {selectedAgent.agent_id}
+                </div>
+                <div className="text-[13px] text-[var(--text-2)] capitalize">
+                  Role: {selectedAgent.role}
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-3)]">
+                  Status
+                </span>
+                <div className="mt-0.5">
+                  {selectedAgentAlerts.length > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--crit-bg)] text-[var(--crit)] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider">
+                      Flagged Threat ({selectedAgentAlerts.length})
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ok-bg)] text-[var(--ok)] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider">
+                      Baseline Normal
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Assigned Role Permissions */}
+            <div className="space-y-2">
+              <h4 className="text-[14px] font-semibold text-[var(--text)]">Assigned Permissions</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedAgent.permissions && selectedAgent.permissions.length > 0 ? (
+                  selectedAgent.permissions.map((perm) => (
+                    <span key={perm} className="rounded-lg bg-[var(--card-alt)] border border-[var(--hairline)]/60 px-2.5 py-1 font-mono text-[12px] text-[var(--text-2)]">
+                      {perm}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-[13px] text-[var(--text-3)]">Standard baseline role permissions</span>
+                )}
+              </div>
+            </div>
+
+            {/* Associated Incident Alerts */}
+            {selectedAgentAlerts.length > 0 ? (
+              <div className="space-y-3">
+                <h4 className="text-[14px] font-semibold text-[var(--crit)]">Attributed Incidents ({selectedAgentAlerts.length})</h4>
+                <div className="space-y-2">
+                  {selectedAgentAlerts.map((alt) => (
+                    <a
+                      key={alt.alert_id}
+                      href={`#/incidents/${alt.alert_id}`}
+                      className="block rounded-xl border border-[var(--hairline)] bg-[var(--card)] p-3.5 transition-all hover:border-[var(--accent)] hover:shadow-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Pill value={alt.severity} />
+                          <span className="font-mono text-[12px] text-[var(--text-3)]">{alt.rule_id}</span>
+                        </div>
+                        <span className="text-[13px] font-medium text-[var(--link)]">Inspect &rsaquo;</span>
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-[var(--text)]">{alt.reason}</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-[var(--hairline)]/60 bg-[var(--card-alt)] p-4 text-[13px] text-[var(--text-2)]">
+                No security alerts attributed to this agent. All recorded actions conformed to learned behavioral baselines.
+              </div>
+            )}
+          </div>
+        )}
+      </Drawer>
 
       {/* Apple-style Footnotes block */}
       <Footnotes symbols={["†", "‡"]} />

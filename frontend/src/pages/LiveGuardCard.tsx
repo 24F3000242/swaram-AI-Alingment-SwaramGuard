@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../api";
 import { GeminiQuota } from "../components/GeminiQuota";
-import { Badge, Button, Card, Empty, Field, Segmented, Stat, inputCls } from "../components/ui";
+import { Badge, Button, Card, CustomSelect, Empty, Field, Segmented, Stat } from "../components/ui";
 import { shortId } from "../lib/format";
 import { useAppState, useRunData } from "../state";
 import type { AgentCount, GatewayMode, LiveReport, ReplayCase } from "../types";
@@ -93,18 +93,29 @@ export function LiveGuardCard() {
         gets its outbound transfers held. Their next actions are denied <strong>before they execute</strong>.
       </p>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <Field label="Scenario" hint={isReplay ? "Planted into a fresh realistic run at a random point." : undefined}>
-          <select className={inputCls} value={scenario} onChange={(e) => setScenario(e.target.value)}>
-            <optgroup label={`Simulator scenarios (${simScenarios.length})`}>
-              {simScenarios.map((s) => <option key={s.scenario_id} value={`builtin:${s.scenario_id}`}>{s.name}</option>)}
-            </optgroup>
-            <optgroup label={`Attack replays (${cases.filter((c) => !c.benign).length})`}>
-              {cases.filter((c) => !c.benign).map((c) => <option key={c.name} value={`replay:${c.name}`}>{c.threat} · {c.name}</option>)}
-            </optgroup>
-            <optgroup label={`Benign look-alikes (${cases.filter((c) => c.benign).length})`}>
-              {cases.filter((c) => c.benign).map((c) => <option key={c.name} value={`replay:${c.name}`}>{c.name}</option>)}
-            </optgroup>
-          </select>
+        <Field label="Scenario" hint={isReplay ? "Planted into a fresh realistic run at a random point." : undefined} asDiv>
+          <CustomSelect
+            value={scenario}
+            onChange={(val) => setScenario(val)}
+            options={[
+              ...simScenarios.map((s) => ({
+                value: `builtin:${s.scenario_id}`,
+                label: s.name,
+                group: `Simulator scenarios (${simScenarios.length})`,
+              })),
+              ...cases.filter((c) => !c.benign).map((c) => ({
+                value: `replay:${c.name}`,
+                label: `${c.threat} · ${c.name}`,
+                group: `Attack replays (${cases.filter((c) => !c.benign).length})`,
+              })),
+              ...cases.filter((c) => c.benign).map((c) => ({
+                value: `replay:${c.name}`,
+                label: c.name,
+                group: `Benign look-alikes (${cases.filter((c) => c.benign).length})`,
+              })),
+            ]}
+            ariaLabel="Select scenario or attack replay"
+          />
         </Field>
         <Field label="Agents" asDiv>
           <Segmented full value={count} onChange={setCount} options={[5, 10, 20].map((n) => ({ value: n as AgentCount, label: n }))} />
@@ -117,11 +128,17 @@ export function LiveGuardCard() {
         <Field label="Mode" asDiv>
           <Segmented full value={mode} onChange={setMode} options={[{ value: "contain", label: "Contain" }, { value: "detect", label: "Detect only" }]} />
         </Field>
-        <Field label="Static gateway" hint={isReplay ? "Replays run with the gateway monitoring only." : "Monitor shows what the live guard adds on its own."}>
-          <select className={inputCls} value={isReplay ? "monitor" : gateway} disabled={isReplay} onChange={(e) => setGateway(e.target.value as GatewayMode)}>
-            <option value="monitor">monitor</option>
-            <option value="enforce">enforce</option>
-          </select>
+        <Field label="Static gateway" hint={isReplay ? "Replays run with the gateway monitoring only." : "Monitor shows what the live guard adds on its own."} asDiv>
+          <CustomSelect
+            value={isReplay ? "monitor" : gateway}
+            disabled={isReplay}
+            onChange={(val) => setGateway(val as GatewayMode)}
+            options={[
+              { value: "monitor", label: "monitor", description: "Record detections without blocking" },
+              { value: "enforce", label: "enforce", description: "Active interception before run" },
+            ]}
+            ariaLabel="Select static gateway mode"
+          />
         </Field>
       </div>
       {ai && !isReplay && (

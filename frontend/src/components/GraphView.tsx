@@ -48,9 +48,14 @@ export function GraphView({
   const agents = graph.nodes.filter((n) => n.kind === "agent");
   const externals = graph.nodes.filter((n) => n.kind === "external");
 
+  const nodeCount = agents.length;
+  const isDense = nodeCount > 8;
+  const isVeryDense = nodeCount > 14;
+  const nodeRadius = isVeryDense ? 18 : isDense ? 22 : 28;
+
   const cx = externals.length ? W * 0.42 : W / 2;
   const cy = H / 2;
-  const R = Math.min(cx, cy) - 75;
+  const R = Math.min(cx, cy) - (isVeryDense ? 48 : 68);
 
   const pos: Record<string, { x: number; y: number }> = {};
   agents.forEach((n, i) => {
@@ -155,7 +160,7 @@ export function GraphView({
             const dx = t.x - s.x;
             const dy = t.y - s.y;
             const len = Math.hypot(dx, dy) || 1;
-            const off = 32; // Offset for 56px diameter node
+            const off = nodeRadius + 4;
             const x1 = s.x + (dx / len) * off;
             const y1 = s.y + (dy / len) * off;
             const x2 = t.x - (dx / len) * (off + 4);
@@ -235,7 +240,7 @@ export function GraphView({
                 {/* Flagged halo */}
                 {n.flagged && !ext && (
                   <circle
-                    r={36}
+                    r={nodeRadius + 8}
                     fill="var(--crit)"
                     fillOpacity={0.14}
                     className="animate-pulse"
@@ -245,7 +250,7 @@ export function GraphView({
                 {/* Selected Ring */}
                 {isSelected && (
                   <circle
-                    r={34}
+                    r={nodeRadius + 6}
                     fill="none"
                     stroke="var(--accent)"
                     strokeWidth={2.5}
@@ -267,7 +272,7 @@ export function GraphView({
                   />
                 ) : (
                   <circle
-                    r={28}
+                    r={nodeRadius}
                     fill={roleColor}
                     stroke={n.flagged ? "var(--crit)" : isSelected ? "var(--accent)" : "var(--bg)"}
                     strokeWidth={n.flagged || isSelected ? 3 : 2}
@@ -275,11 +280,11 @@ export function GraphView({
                   />
                 )}
 
-                {/* Role Initial in Center (56px circle or 48px square) */}
+                {/* Role Initial in Center */}
                 <text
-                  y={ext ? 4 : 5}
+                  y={ext ? 4 : isVeryDense ? 4 : 5}
                   textAnchor="middle"
-                  fontSize={ext ? "11" : "16"}
+                  fontSize={ext ? "11" : isVeryDense ? "12" : "15"}
                   fontWeight="600"
                   fill={ext ? (isSuspiciousExternal ? "var(--crit)" : "var(--text-2)") : "var(--bg)"}
                   className="pointer-events-none select-none tracking-tight"
@@ -287,28 +292,42 @@ export function GraphView({
                   {roleInitial}
                 </text>
 
-                {/* Name below node: 14px */}
-                <text
-                  y={46}
-                  textAnchor="middle"
-                  fontSize="14"
-                  fontWeight="600"
-                  fill={ext && !isSuspiciousExternal ? "var(--text-2)" : "var(--text)"}
-                  className="pointer-events-none select-none"
-                >
-                  {ext ? label : `agent ${label}`}
-                </text>
+                {/* Name & Role Labels - collision-free adaptive positioning */}
+                {!isVeryDense ? (
+                  <>
+                    <text
+                      y={nodeRadius + 16}
+                      textAnchor="middle"
+                      fontSize={isDense ? "11" : "13"}
+                      fontWeight="600"
+                      fill={ext && !isSuspiciousExternal ? "var(--text-2)" : "var(--text)"}
+                      className="pointer-events-none select-none"
+                    >
+                      {ext ? label : `agent ${label}`}
+                    </text>
 
-                {/* Role below name: 12px */}
-                {!ext && n.role && (
+                    {!ext && n.role && (
+                      <text
+                        y={nodeRadius + 29}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="var(--text-2)"
+                        className="pointer-events-none select-none capitalize"
+                      >
+                        {n.role}
+                      </text>
+                    )}
+                  </>
+                ) : (
                   <text
-                    y={62}
+                    y={nodeRadius + 13}
                     textAnchor="middle"
-                    fontSize="12"
-                    fill="var(--text-2)"
-                    className="pointer-events-none select-none capitalize"
+                    fontSize="11"
+                    fontWeight="600"
+                    fill={ext && !isSuspiciousExternal ? "var(--text-2)" : "var(--text)"}
+                    className="pointer-events-none select-none"
                   >
-                    {n.role}
+                    {label}
                   </text>
                 )}
 
@@ -319,6 +338,43 @@ export function GraphView({
             );
           })}
         </svg>
+
+        {/* Live Hover HUD */}
+        {hover && (
+          <div className="mt-2 flex items-center justify-between rounded-xl bg-[var(--card-alt)] border border-[var(--hairline)]/60 px-3.5 py-2 text-[12px] shadow-xs">
+            {(() => {
+              const hNode = graph.nodes.find((n) => n.id === hover);
+              if (!hNode) return null;
+              const isExt = hNode.kind === "external";
+              return (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ background: ROLE_COLOR[hNode.role ?? ""] ?? "var(--text-3)" }}
+                    />
+                    <strong className="text-[var(--text)] font-semibold">
+                      {isExt ? hNode.id : `Agent ${hNode.id}`}
+                    </strong>
+                    {hNode.role && (
+                      <span className="text-[var(--text-2)] capitalize font-medium">({hNode.role})</span>
+                    )}
+                    {hNode.flagged && (
+                      <span className="rounded-full bg-[var(--crit-bg)] text-[var(--crit)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                        Flagged Threat
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 text-[var(--text-3)] font-mono text-[11px]">
+                    <span>{hNode.event_count} events</span>
+                    <span>degree: {hNode.degree_centrality.toFixed(2)}</span>
+                    <span className="text-[var(--accent)] font-sans font-medium cursor-pointer">Click node to inspect dossier &rsaquo;</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        )}
       </div>
 
       {/* Legend below graph */}

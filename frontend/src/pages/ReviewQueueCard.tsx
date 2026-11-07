@@ -50,7 +50,7 @@ export function ReviewQueueCard() {
   return (
     <Card title={`Review queue${filter === "pending" ? ` (${list.length} pending)` : ""}`}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-2xl text-[13px] leading-relaxed text-muted">
+        <p className="max-w-2xl text-[14px] leading-relaxed text-[var(--text-2)]">
           Every agent the live guard pauses, every outbound hold and every quarantined input waits here for a person.
           <strong> Release</strong> lets a still-running agent continue at once; <strong>Confirm</strong> keeps it contained.
         </p>
@@ -60,26 +60,26 @@ export function ReviewQueueCard() {
           <Segmented size="sm" value={filter} onChange={setFilter} options={[{ value: "pending", label: "Pending" }, { value: "all", label: "All" }]} />
         </div>
       </div>
-      {error && <p className="mb-3 text-[13px] text-[var(--crit)]">{error}</p>}
+      {error && <p className="mb-3 text-[14px] text-[var(--crit)]">{error}</p>}
       {list.length ? (
         <ul className="divide-y divide-[var(--hairline-subtle)]">
           {list.map((i) => (
             <li key={i.review_id} className="flex flex-wrap items-start justify-between gap-3 py-3">
-              <div className="min-w-0 flex-1 text-[13px]">
+              <div className="min-w-0 flex-1 text-[14px]">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-ink">{KIND_LABEL[i.kind]}</span>
-                  <span className="font-mono text-faint">{shortId(i.agent_id)}</span>
-                  {i.role && <span className="text-muted">{i.role}</span>}
-                  {i.trigger && <span className="rounded-full bg-[var(--low-bg)] px-2 py-0.5 text-[11px] text-muted">{i.trigger}</span>}
+                  <span className="font-medium text-[var(--text)]">{KIND_LABEL[i.kind]}</span>
+                  <span className="font-mono text-[var(--text-3)]">{shortId(i.agent_id)}</span>
+                  {i.role && <span className="text-[var(--text-2)]">{i.role}</span>}
+                  {i.trigger && <span className="rounded-full bg-[var(--low-bg)] px-2 py-0.5 text-[11px] text-[var(--text-2)]">{i.trigger}</span>}
                   {i.status !== "pending" && <Badge value={i.status === "released" ? "allowed" : "blocked"} />}
                   {i.status === "pending" && i.escalated_at && (
                     <span className="rounded-full bg-[var(--crit-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--crit)]">overdue</span>
                   )}
                 </div>
-                <p className="mt-1 [overflow-wrap:anywhere] text-muted">
+                <p className="mt-1 [overflow-wrap:anywhere] text-[var(--text-2)]">
                   {i.explanation ?? (i.kind === "quarantined_input" ? `${i.resource} claims to be from ${i.claimed_sender}` : "")}
                 </p>
-                <p className="mt-0.5 text-[11px] text-faint">run <span className="font-mono">{i.run_id}</span>{i.effect ? ` · ${i.effect}` : ""}{i.decided_by ? ` · by ${i.decided_by}` : ""}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--text-3)]">run <span className="font-mono">{i.run_id}</span>{i.effect ? ` · ${i.effect}` : ""}{i.decided_by ? ` · by ${i.decided_by}` : ""}</p>
               </div>
               {i.status === "pending" && (
                 <div className="flex gap-2">

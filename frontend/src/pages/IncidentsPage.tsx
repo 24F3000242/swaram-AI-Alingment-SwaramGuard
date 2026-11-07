@@ -1,3 +1,5 @@
+import { ResponsesPage } from "./ResponsesPage";
+import { Segmented } from "../components/ui";
 import { useEffect, useState } from "react";
 import { useAppState, useRunData } from "../state";
 import { api } from "../api";
@@ -28,24 +30,39 @@ function AgentRoleBadge({
       title={`Click to copy full ID: ${agentId}`}
     >
       <span className="capitalize">{role}</span>
-      <button
-        type="button"
+      <span
+        role="button"
+        tabIndex={0}
         onClick={(e) => {
           e.stopPropagation();
           navigator.clipboard.writeText(agentId);
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         }}
-        className="text-[var(--text-3)] hover:text-[var(--accent)] transition-opacity"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.stopPropagation();
+            navigator.clipboard.writeText(agentId);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }
+        }}
+        className="cursor-pointer text-[var(--text-3)] hover:text-[var(--accent)] transition-opacity"
         aria-label={`Copy full agent ID ${agentId}`}
       >
         {copied ? <Check size={12} className="text-[var(--ok)]" /> : <Copy size={12} />}
-      </button>
+      </span>
     </span>
   );
 }
 
-export function IncidentsPage({ initialAlertId }: { initialAlertId?: string }) {
+export function IncidentsPage({ initialAlertId, initialView = "alerts" }: { initialAlertId?: string; initialView?: "alerts" | "reviews" } = {}) {
+  const [mainView, setMainView] = useState<"alerts" | "reviews">(initialView);
+
+  useEffect(() => {
+    setMainView(initialView);
+  }, [initialView]);
+
   const { selectedRunId } = useAppState();
   const alertsData = useRunData(api.alerts, selectedRunId);
   const normalizedData = useRunData(api.normalizedEvents, selectedRunId);
@@ -125,10 +142,32 @@ export function IncidentsPage({ initialAlertId }: { initialAlertId?: string }) {
     <div className="space-y-8">
       <PageHeader
         title="Incidents."
-        subtitle="Cross-agent threat detections backed by verifiable event chains."
+        subtitle="Forensic evidence chains, Bayesian threat attribution, and containment remediation queue."
+        actions={
+          <div className="flex items-center gap-3">
+            <Segmented
+              value={mainView}
+              onChange={(v) => {
+                setMainView(v);
+                if (v === "reviews") window.location.hash = "#/responses";
+                else window.location.hash = "#/incidents";
+              }}
+              options={[
+                { value: "alerts", label: "Forensic Alerts" },
+                { value: "reviews", label: "Remediation & Review Queue" },
+              ]}
+            />
+          </div>
+        }
       />
 
-      {!alerts.length && (
+      {mainView === "reviews" ? (
+        <div className="transition-opacity">
+          <ResponsesPage hideHeader />
+        </div>
+      ) : (
+        <>
+          {!alerts.length && (
         <Card>
           <Empty>
             {selectedRunId
@@ -512,6 +551,8 @@ export function IncidentsPage({ initialAlertId }: { initialAlertId?: string }) {
           </div>
         )}
       </Drawer>
+        </>
+      )}
 
       <Footnotes symbols={["†", "‡"]} />
     </div>
