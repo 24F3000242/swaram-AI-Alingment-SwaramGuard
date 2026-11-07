@@ -129,7 +129,7 @@ def run_simulation(
             malicious_ids |= stats.violators
         for a in agents:
             a.is_malicious = a.agent_id in malicious_ids
-    events, dropped = runner.events, []
+    events, dropped = runner.events, list(getattr(runner, "dropped_event_ids", []))
     if config.sensors:  # an independent second record of each executed action (lost independently below)
         from app.modules.detection.evidence import sensor_record
 
@@ -144,8 +144,11 @@ def run_simulation(
         drop_rng = random.Random(config.seed * 7919 + 1)
         kept = []
         for e in events:
-            (dropped if drop_rng.random() < config.drop_rate else kept).append(e)
-        events, dropped = kept, [e.event_id for e in dropped]
+            if drop_rng.random() < config.drop_rate:
+                dropped.append(e.event_id)
+            else:
+                kept.append(e)
+        events = kept
     run = Run(
         run_id=run_id,
         scenario_id=config.scenario_id,

@@ -44,6 +44,7 @@ class AgentRunner:
         self.events: list[RawEvent] = []
         self._sequence_counter: int = 0
         self.malicious_event_ids: list[str] = []
+        self.dropped_event_ids: list[str] = []
         self.live = live
         self._agent_registry: dict[str, Agent] = {}
         self.sim_agents: list[SimulatedAgent] = []
@@ -123,6 +124,13 @@ class AgentRunner:
         if self.live:
             self.live.observe(event)
         return event
+
+    def drop_event(self, event: RawEvent) -> None:
+        """Drop a telemetry event from the recorded event stream, preserving dropped-event accounting."""
+        if event in self.events:
+            self.events.remove(event)
+        if event.event_id not in self.dropped_event_ids:
+            self.dropped_event_ids.append(event.event_id)
 
     def protected(
         self,
