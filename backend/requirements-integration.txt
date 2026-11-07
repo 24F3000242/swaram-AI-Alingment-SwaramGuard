@@ -1,0 +1,5 @@
+# Optional real-framework tests; install after requirements.txt.
+langchain-core==0.3.79
+langchain==0.3.27
+mcp==1.29.0
+uvicorn==0.38.0
